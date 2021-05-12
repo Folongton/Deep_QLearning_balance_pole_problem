@@ -141,9 +141,11 @@ class Agent():
             return random.randrange(self.num_actions) # explore      
         else:
                 output = policy_net.predict(state) # exploit 
-                print(output)
+                
                 best_action = tf.math.argmax(output, axis=1)
-                return best_action.numpy().item()
+                best_action = best_action.numpy().item()
+                print(f'This is the best action for step{self.current_step}: ', best_action)
+                return best_action
 
 class EpsilonGreedyStrategy():
     def __init__(self, start, end, decay):
@@ -177,14 +179,16 @@ class QValues():
     @staticmethod
     def get_current(policy_net, states, actions):
         output = policy_net.predict(states)
-        print(output)
-        return output
+        output = tf.constant(output)
+        output_for_actions_taken = tf.gather(output, indices=actions, axis=1)
+        output_for_actions_taken = tf.linalg.diag_part(output_for_actions_taken)
+        print('These are Current Q values: ', output, '\n', 'Taken actions and their outputs: ', output_for_actions_taken, '\n', actions)
+        return output_for_actions_taken
 
     @staticmethod        
     def get_next(target_net, next_states):   
         flattened = tf.reshape(next_states, [256, (next_states.shape[1] * next_states.shape[2] * next_states.shape[3])])
         max_value = tf.math.argmax(flattened, axis=1)
-        print(max_value)
         final_state_locations = tf.stack([flattened[0][x] == 0 for x in max_value.numpy()])
 
         non_final_state_locations = (final_state_locations == False)
@@ -192,9 +196,11 @@ class QValues():
 
         values = tf.zeros_like(non_final_state_locations, dtype=tf.float32)
         next_q_values = target_net.predict(non_final_states)
+
         max_q_values = np.amax(next_q_values, axis=1)
-        indexes = tf.where(non_final_state_locations)
-        values[non_final_state_locations] = max_q_values
+        indexes = tf.where(non_final_state_locations.numpy())
+        values = tf.tensor_scatter_nd_update(values, indexes, max_q_values)
+        print('Thise are next Q values: ', values)
         return values
 
 Experience = namedtuple( 'Experience', ('state', 'action', 'next_state', 'reward') )

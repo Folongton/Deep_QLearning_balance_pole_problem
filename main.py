@@ -106,6 +106,7 @@ for episode in range(num_episodes):
         if memory.can_provide_sample(batch_size):
             experiences = memory.sample(batch_size)
             states, actions, rewards, next_states = extract_tensors(experiences)
+            print("These are rewards for this batch: " + str(rewards.numpy()))
 
             current_q_values = QValues.get_current(policy_net, states, actions)
             next_q_values = QValues.get_next(target_net, next_states)
@@ -121,3 +122,6 @@ for episode in range(num_episodes):
             episode_durations.append(timestep)
             Plotting.plot(episode_durations, 100)
             break
+
+        if episode % target_update == 0:
+            target_net.set_weights(policy_net.get_weights())
