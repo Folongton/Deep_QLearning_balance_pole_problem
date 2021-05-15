@@ -1,7 +1,4 @@
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
 
 from itertools import count
 
@@ -57,12 +54,14 @@ def extract_tensors(experiences):
     batch = Experience(*zip(*experiences))
 
     t1 = tf.squeeze(tf.stack(batch.state), axis=1)
-    t2 = tf.constant(batch.action)
+    t2 = tf.convert_to_tensor(batch.action)
     t3 = tf.squeeze(tf.stack(batch.reward), axis=1)
     t4 = tf.squeeze(tf.stack(batch.next_state), axis=1)
 
     return (t1,t2,t3,t4)
 
+
+#check_moving_avg_plot()
 # Hyperparameters
 batch_size = 256
 gamma = 0.999
@@ -72,7 +71,8 @@ eps_decay = 0.001
 target_update = 10
 memory_size = 100_000
 lr = 0.001
-num_episodes = 1000
+num_episodes = 1200
+
 
 # Setting all objects
 em = CartPoleEnvManager()
@@ -83,16 +83,19 @@ memory = ReplayMemory(memory_size)
 
 
 policy_net = DQN(em.get_screen_height(), em.get_screen_width())
-policy_net = policy_net.compile_model(lr)
+policy_net = policy_net.def_model()
 
 target_net = DQN(em.get_screen_height(), em.get_screen_width())
-target_net = target_net.compile_model(lr)
+target_net = target_net.def_model()
 target_net.set_weights(policy_net.get_weights())
+
+optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
 
 episode_durations = []
 
 
 for episode in range(num_episodes):
+
     em.reset()
     state = em.get_state()
 
@@ -106,17 +109,22 @@ for episode in range(num_episodes):
         if memory.can_provide_sample(batch_size):
             experiences = memory.sample(batch_size)
             states, actions, rewards, next_states = extract_tensors(experiences)
-            print("These are rewards for this batch: " + str(rewards.numpy()))
+            #print("These are rewards for this batch: " + str(rewards.numpy()))
 
-            current_q_values = QValues.get_current(policy_net, states, actions)
-            next_q_values = QValues.get_next(target_net, next_states)
-            target_q_values = (next_q_values * gamma) + rewards
 
-            loss = tf.keras.losses.MSE(current_q_values, target_q_values)
-           # loss = F.mse_loss(current_q_values, target_q_values.unsqueeze(1))
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            for var in optimizer.variables():
+                var.assign(tf.zeros_like(var)) # reseting optimizer weights
+
+            with tf.GradientTape() as tape:
+                tape.watch(states)
+                current_q_values = QValues.get_current(policy_net, states, actions)
+                next_q_values = QValues.get_next(target_net, next_states)
+                target_q_values = (next_q_values * gamma) + rewards
+                loss = tf.keras.losses.MSE(current_q_values, target_q_values)
+                print('Loss for this batch is : ', loss.numpy())
+                gradients = tape.gradient(loss, policy_net.trainable_variables)
+                optimizer.apply_gradients(zip(gradients, policy_net.trainable_variables)) # updating the weights in the model
+
 
         if em.done:
             episode_durations.append(timestep)

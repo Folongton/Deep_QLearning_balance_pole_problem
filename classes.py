@@ -13,21 +13,21 @@ import tensorflow as tf
 
 from PIL import Image
 
-class DQN():
+class DQN(tf.keras.Model):
     def __init__(self, img_height, img_width):
         self.height = img_height
         self.width = img_width
         
     
-    def compile_model(self, learning_rate):
-        opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    def def_model(self):
+        
         model =  tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(self.height, self.width, 3)),
             tf.keras.layers.Dense(24, activation='relu'),
             tf.keras.layers.Dense(32, activation='relu'),
             tf.keras.layers.Dense(2, activation='linear')
     ])
-        model.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
+        
         return model
 
 class CartPoleEnvManager():
@@ -126,6 +126,7 @@ class Plotting():
         plt.plot(moving_avg)
         print("Episode", len(values), "\n", moving_avg_period, "episode moving avg:", moving_avg[-1])
         plt.show(block=False)
+        plt.pause(0.001)
 
 class Agent():
     def __init__(self, strategy, num_actions):
@@ -136,16 +137,16 @@ class Agent():
     def select_action(self, state, policy_net):
         rate = self.strategy.get_exploration_rate(self.current_step)
         self.current_step += 1
-
+ 
         if rate > random.random():
             return random.randrange(self.num_actions) # explore      
         else:
-                output = policy_net.predict(state) # exploit 
+            output = policy_net.predict(state) # exploit 
                 
-                best_action = tf.math.argmax(output, axis=1)
-                best_action = best_action.numpy().item()
-                print(f'This is the best action for step{self.current_step}: ', best_action)
-                return best_action
+            best_action = tf.math.argmax(output, axis=1)
+            best_action = best_action.numpy().item()
+            #print(f'This is the best action for step{self.current_step}: ', best_action)
+            return best_action
 
 class EpsilonGreedyStrategy():
     def __init__(self, start, end, decay):
@@ -178,11 +179,11 @@ class ReplayMemory():
 class QValues():
     @staticmethod
     def get_current(policy_net, states, actions):
-        output = policy_net.predict(states)
+        output = policy_net(states)
         output = tf.constant(output)
         output_for_actions_taken = tf.gather(output, indices=actions, axis=1)
         output_for_actions_taken = tf.linalg.diag_part(output_for_actions_taken)
-        print('These are Current Q values: ', output, '\n', 'Taken actions and their outputs: ', output_for_actions_taken, '\n', actions)
+        #print('These are Current Q values: ', output, '\n', 'Taken actions and their outputs: ', output_for_actions_taken, '\n', actions)
         return output_for_actions_taken
 
     @staticmethod        
@@ -195,12 +196,12 @@ class QValues():
         non_final_states = next_states[non_final_state_locations]
 
         values = tf.zeros_like(non_final_state_locations, dtype=tf.float32)
-        next_q_values = target_net.predict(non_final_states)
+        next_q_values = target_net(non_final_states)
 
         max_q_values = np.amax(next_q_values, axis=1)
         indexes = tf.where(non_final_state_locations.numpy())
         values = tf.tensor_scatter_nd_update(values, indexes, max_q_values)
-        print('Thise are next Q values: ', values)
+        #print('Thise are next Q values: ', values)
         return values
 
 Experience = namedtuple( 'Experience', ('state', 'action', 'next_state', 'reward') )
