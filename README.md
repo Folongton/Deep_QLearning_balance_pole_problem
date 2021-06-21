@@ -41,3 +41,4 @@ classes.py <br/>
           11. After x steps (10 in our case), weights in 2nd (Target) Network are updated to the weights of 1st (policy) Network.
 4. Continue iteration until ANN approximate Q-function to the optimal state e.g. solving the moving pole problem. 
          
+*Although this solution does not converge the function to the point of optimal Q-fuction yet. (I think, I have made some mistake in data flow). I have learned a lot from this project: Q-Learning, ANNs inner structure and process of backpropagation, General concepts of Reinforced learning, tensor manipulation and image preprocessing. I will definitelly come back to finish this one in a few weeks, with a clearer head and new knowledge.*
