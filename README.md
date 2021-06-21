@@ -22,15 +22,22 @@ classes.py <br/>
 
 #### Structure of solution:
 
-1. Initializing replay memory.
-2. Initializing 1st (Policy) Network.
-3. Copying the Policy Network into 2nd (Target) Network.
+1. Initialize replay memory.
+2. Initialize 1st (Policy) Network.
+3. Copy the Policy Network into 2nd (Target) Network.
    *Episode loop:*
-      1. Initializing (reseting) starting state.
+      1. Initialize (reseting) starting state. <br/>
       *Time Step Loop:*
-          1. Selecting action using exploration/exploitation condition based on epsilon function and current step.
-          2. Executing action in gym enviroment.
-          3. Observing reward and next state.
-          4. Adding experience ( state, action, reward, next state) to the replay memory.
-          5. Sampling random batch from replay memory.
-          6. 
+          1. Select action using exploration/exploitation condition based on epsilon function and current step.
+          2. Execute action in gym enviroment.
+          3. Observe reward and next state.
+          4. Add experience ( state, action, reward, next state) to the replay memory.
+          5. Sample random batch from replay memory.
+          6. Preprocess batch of experiences.
+          7. Forward feed batch of experiences to 1st (Policy) Network.
+          8. Forward feed output values (Q values) from 1st Network to 2nd (Target) Network.
+          9. Calculate loss between Q values from 1st Network and Q values from 2nd Network.
+          10. Update weights in the 1st (policy) Network via backpropagation to minimize loss.
+          11. After x steps (10 in our case), weights in 2nd (Target) Network are updated to the weights of 1st (policy) Network.
+4. Continue iteration until ANN approximate Q-function to the optimal state e.g. solving the moving pole problem. 
+         
