@@ -24,7 +24,7 @@ classes.py <br/>
 
 1. Initialize replay memory.
 2. Initialize 1st (Policy) Network.
-3. Copy the Policy Network into 2nd (Target) Network.
+3. Copy the Policy Network into 2nd (Target) Network. <br/>
    *Episode loop:*
       1. Initialize (reseting) starting state. <br/>
       *Time Step Loop:*
