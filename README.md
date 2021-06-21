@@ -26,7 +26,7 @@ classes.py <br/>
 2. Initialize 1st (Policy) Network.
 3. Copy the Policy Network into 2nd (Target) Network. <br/>
    *Episode loop:*
-      1. Initialize (reseting) starting state. <br/>
+      I. Initialize (reseting) starting state. <br/>
       *Time Step Loop:*
           1. Select action using exploration/exploitation condition based on epsilon function and current step.
           2. Execute action in gym enviroment.
