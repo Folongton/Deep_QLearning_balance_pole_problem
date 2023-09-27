@@ -1,6 +1,6 @@
 # DQL_balance_pole_visual_studio
 
-My attempt on solving balancing pole problem via DQL implementation. <br/>
+My attempt on solving balancing pole problem via Deep Q-Learning implementation. <br/>
 Later on plannig to switch to space invadors and eventually to Counter Strike games.
 
 *To save time navigating, please refer to the below contents and list of tools.*
